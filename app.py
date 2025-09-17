@@ -61,9 +61,32 @@ def bookings():
 
 
 # ----------------- ROOMS MODULE (Teammate C) -----------------
-@app.route('/rooms')
+@app.route("/rooms", methods=["GET", "POST"])
 def rooms():
-    return render_template('rooms.html')
+    from models import Room
+
+    if request.method == "POST":
+        room_no = request.form["room_no"]
+        room_type = request.form["type"]
+
+        if not room_no or not room_type:
+            flash("All fields are required.", "danger")
+            return redirect(url_for("rooms"))
+
+        try:
+            room_no = int(room_no)
+        except ValueError:
+            flash("Room number must be a number.", "danger")
+            return redirect(url_for("rooms"))
+
+        new_room = Room(room_no=room_no, type=room_type, status="Available")
+        db.session.add(new_room)
+        db.session.commit()
+        flash("Room added successfully!", "success")
+
+    rooms = Room.query.all()
+    return render_template("rooms.html", rooms=rooms)
+
 
 
 # ----------------- PAYMENTS MODULE (Teammate D) -----------------
